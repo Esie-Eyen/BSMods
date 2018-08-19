@@ -1,0 +1,2 @@
+# BSMods
+Mods for BombSquad
