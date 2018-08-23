@@ -9,6 +9,38 @@ def bsGetAPIVersion():
 def bsGetGames():
     return [PusherGame]
 
+class SoccerBomb(bs.Bomb):
+	def __init__(self, position=(0, 1, 0), velocity=(0, 0, 0), bombType='normal', blastRadius=2.0, sourcePlayer=None, owner=None):
+		bs.Actor.__init__(self)
+		factory = self.getFactory()
+		self.bombType = 'soccer'
+		self._exploded = False
+		self.blastRadius = blastRadius
+		self.blastRadius *= 1.45
+		self._explodeCallbacks = []
+		self.sourcePlayer = sourcePlayer
+		self.hitType = 'explosion'
+		self.hitSubType = self.bombType
+		
+		if owner is None:
+			owner = bs.Node(None)
+			
+		self.owner = owner
+		materials = (factory.bombMaterial, bs.getSharedObject('footingMaterial'), bs.getSharedObject('objectMaterial'))
+		materials = materials + (factory.normalSoundMaterial,)
+		
+		self.node = bs.newNode('prop',
+							   delegate=self,
+							   attrs={'position':position,
+									  'velocity':velocity,
+									  'model':factory.bombModel,
+									  'body':'sphere',
+									  'shadowSize':0.5,
+									  'colorTexture':bs.getTexture('bunnyColor'),
+									  'reflection':'soft',
+									  'reflectionScale':[0.25],
+									  'materials':materials})
+
 class PusherGame(bs.TeamGameActivity):
 
     @classmethod
@@ -168,6 +200,7 @@ class PusherGame(bs.TeamGameActivity):
         elif isinstance(m,bs.FlagDeathMessage):
             if not self.hasEnded():
                 self._flagRespawnTimer = bs.Timer(3000,self._spawnFlag)
+                
                 self._flagRespawnLight = bs.NodeActor(bs.newNode('light',
                                                                  attrs={'position': self._flagSpawnPos,
                                                                         'heightAttenuated':False,
@@ -191,11 +224,8 @@ class PusherGame(bs.TeamGameActivity):
     def _spawnFlag(self):
         bs.playSound(self._swipSound)
         bs.playSound(self._whistleSound)
-        self._flashFlagSpawn()
-        
-        self._flag = bs.Bomb(position=self._flagSpawnPos,
-                                             bombType='tnt')
-                                             
+        self._flashFlagSpawn()       
+        self._flag = SoccerBomb(position=(0,2,0))                                             
         self._flag.scored = False
         self._flag.heldCount = 0
         self._flag.lastHoldingPlayer = None
