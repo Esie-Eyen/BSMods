@@ -53,7 +53,7 @@ class PusherGame(bs.TeamGameActivity):
     
     @classmethod
     def getDescription(cls,sessionType):
-        return 'Push the box to the enemy goalie.'
+        return 'Push the ball to the enemy goalie.'
 
     @classmethod
     def getSupportedMaps(cls,sessionType):
