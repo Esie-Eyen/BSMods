@@ -7,7 +7,7 @@ def bsGetAPIVersion():
     return 4
 
 def bsGetGames():
-    return [PusherGame]
+    return [KickerGame]
 
 class SoccerBomb(bs.Bomb):
 	def __init__(self, position=(0, 1, 0), velocity=(0, 0, 0), bombType='normal', blastRadius=2.0, sourcePlayer=None, owner=None):
@@ -41,11 +41,11 @@ class SoccerBomb(bs.Bomb):
 									  'reflectionScale':[0.25],
 									  'materials':materials})
 
-class PusherGame(bs.TeamGameActivity):
+class KickerGame(bs.TeamGameActivity):
 
     @classmethod
     def getName(cls):
-        return 'Pusher'
+        return 'Kicker'
 
     @classmethod
     def supportsSessionType(cls,sessionType):
