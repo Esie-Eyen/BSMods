@@ -1,4 +1,4 @@
-#Pusher by Esie-Eyen
+#Kicker by Esie-Eyen
 import bs
 import random
 import bsUtils
@@ -9,11 +9,11 @@ def bsGetAPIVersion():
 def bsGetGames():
     return [KickerGame]
 
-class SoccerBomb(bs.Bomb):
+class Ball(bs.Bomb):
 	def __init__(self, position=(0, 1, 0), velocity=(0, 0, 0), bombType='normal', blastRadius=2.0, sourcePlayer=None, owner=None):
 		bs.Actor.__init__(self)
 		factory = self.getFactory()
-		self.bombType = 'soccer'
+		self.bombType = 'ball'
 		self._exploded = False
 		self.blastRadius = blastRadius
 		self.blastRadius *= 1.45
@@ -33,7 +33,7 @@ class SoccerBomb(bs.Bomb):
 							   delegate=self,
 							   attrs={'position':position,
 									  'velocity':velocity,
-									  'model':factory.bombModel,
+									  'model':bs.getModel('frostyPelvis'),
 									  'body':'sphere',
 									  'shadowSize':0.5,
 									  'colorTexture':bs.getTexture('bunnyColor'),
@@ -42,7 +42,6 @@ class SoccerBomb(bs.Bomb):
 									  'materials':materials})
 
 class KickerGame(bs.TeamGameActivity):
-
     @classmethod
     def getName(cls):
         return 'Kicker'
@@ -53,7 +52,7 @@ class KickerGame(bs.TeamGameActivity):
     
     @classmethod
     def getDescription(cls,sessionType):
-        return 'Push the ball to the enemy goalie.'
+        return 'Kick the ball to the enemy goalie.'
 
     @classmethod
     def getSupportedMaps(cls,sessionType):
@@ -62,9 +61,7 @@ class KickerGame(bs.TeamGameActivity):
     @classmethod
     def getSettings(cls,sessionType):
         return [("Score to Win",{'minValue':1,'default':3,'increment':1}),
-                ("Time Limit",{'choices':[('None',0),('1 Minute',60),
-                                        ('2 Minutes',120),('5 Minutes',300),
-                                        ('10 Minutes',600),('20 Minutes',1200)],'default':0}),
+                ("Time Limit",{'choices':[('None',0),('1 Minute',60),('2 Minutes',120),('5 Minutes',300),('10 Minutes',600),('20 Minutes',1200)],'default':0}),
                 ("Respawn Times",{'choices':[('Shorter',0.25),('Short',0.5),('Normal',1.0),('Long',2.0),('Longer',4.0)],'default':1.0}), ]
 
     def __init__(self,settings):
@@ -225,7 +222,7 @@ class KickerGame(bs.TeamGameActivity):
         bs.playSound(self._swipSound)
         bs.playSound(self._whistleSound)
         self._flashFlagSpawn()       
-        self._flag = SoccerBomb(position=(0,2,0))                                             
+        self._flag = Ball(position=(0,2,0))                                             
         self._flag.scored = False
         self._flag.heldCount = 0
         self._flag.lastHoldingPlayer = None
