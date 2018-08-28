@@ -5,10 +5,9 @@ def bsGetAPIVersion():
     return 4
 
 def bsGetGames():
-    return [FlagBoxingGame]
+    return [FlagBoxing]
 
-class FlagBoxingGame(bs.TeamGameActivity):
-
+class FlagBoxing(bs.TeamGameActivity):
     @classmethod
     def getName(cls):
         return 'Flag Boxing'
@@ -24,20 +23,19 @@ class FlagBoxingGame(bs.TeamGameActivity):
 
     @classmethod
     def getSupportedMaps(cls,sessionType):
-        return ['Courtyard']
+        return ['Football Stadium']
 
     @classmethod
     def getSettings(cls,sessionType):
         return [("KOs to Win Per Player",{'minValue':1,'default':5,'increment':1}),
-                ("Time Limit",{'choices':[('None',0),('1 Minute',60),
-                                        ('2 Minutes',120),('5 Minutes',300),
-                                        ('10 Minutes',600),('20 Minutes',1200)],'default':0}),
+                ("Time Limit",{'choices':[('None',0),('1 Minute',60),('2 Minutes',120),('5 Minutes',300),('10 Minutes',600),('20 Minutes',1200)],'default':0}),
                 ("Respawn Times",{'choices':[('Shorter',0.25),('Short',0.5),('Normal',1.0),('Long',2.0),('Longer',4.0)],'default':1.0}),
                 ("Epic Mode",{'default':False})]
 
     def __init__(self,settings):
         bs.TeamGameActivity.__init__(self,settings)
         if self.settings['Epic Mode']: self._isSlowMotion = True
+        self.isFlying = True
         self.announcePlayerDeaths = True      
         self._scoreBoard = bs.ScoreBoard()
 
@@ -65,35 +63,39 @@ class FlagBoxingGame(bs.TeamGameActivity):
         self._updateScoreBoard()
         self._dingSound = bs.getSound('dingSmall')
         self.bgFlag()
-
+        
     def spawnPlayer(self,player):
-
         spaz = self.spawnPlayerSpaz(player)
         spaz.connectControlsToPlayer(enablePunch=True,
                                      enableBomb=False,
                                      enablePickUp=True)
                                      
     def bgFlag(self):
-    	self.bgf = bs.Flag(position=(0,2.7,-1.5),touchable=True,color=(10,10,10))
+    	self.bgf = bs.Flag(position=(0,0,0),touchable=True,color=(10,10,10))
         bs.gameTimer(100,self.curseFlag)
         
     def curseFlag(self):
-    	self.cf = bs.Flag(position=(0,2.7,-1.5),touchable=True,color=(0,0,0))
+    	self.cf = bs.Flag(position=(0,0,0),touchable=True,color=(0,0,0))
         self.bgf = None
+        bs.gameTimer(115,self.shieldFlag)
+        
+    def shieldFlag(self):
+    	self.sf = bs.Flag(position=(0,0,0),touchable=True,color=(10,10,10))
+        self.cf = None
         bs.gameTimer(100,self.bg2Flag)
         
     def bg2Flag(self):
-    	self.bgf2 = bs.Flag(position=(0,2.7,-1.5),touchable=True,color=(10,10,10))
-        self.cf = None
+    	self.bgf2 = bs.Flag(position=(0,0,0),touchable=True,color=(10,10,10))
+        self.sf = None
         bs.gameTimer(100,self.freezeFlag)
         
     def freezeFlag(self):
-    	self.ff = bs.Flag(position=(0,2.7,-1.5),touchable=True,color=(0,0,0))
+    	self.ff = bs.Flag(position=(0,0,0),touchable=True,color=(0,0,0))
         self.bgf2 = None
-        bs.gameTimer(100,self.bg3Flag)
+        bs.gameTimer(115,self.bg3Flag)
         
     def bg3Flag(self):
-    	self.bgf3 = bs.Flag(position=(0,2.7,-1.5),touchable=True,color=(10,10,10))
+    	self.bgf3 = bs.Flag(position=(0,0,0),touchable=True,color=(10,10,10))
         self.ff = None
         bs.gameTimer(100,self.loopFlag)
       
@@ -103,7 +105,7 @@ class FlagBoxingGame(bs.TeamGameActivity):
 
     def handleMessage(self,m):   
         if isinstance(m,bs.PlayerSpazDeathMessage):
-            bs.TeamGameActivity.handleMessage(self,m) # augment standard behavior
+            bs.TeamGameActivity.handleMessage(self,m)
 
             player = m.spaz.getPlayer()
             self.respawnPlayer(player)
@@ -139,9 +141,14 @@ class FlagBoxingGame(bs.TeamGameActivity):
             if m.flag is self.bgf:
                 bs.screenMessage("Boxing Gloves")
                 m.node.boxingGloves = True
+                pos = m.node.positionCenter
+            	bs.Blast(position=(pos[0],pos[1]-0.5,pos[2]),blastRadius=1.0,blastType='smoke').autoRetain()
             elif m.flag is self.cf:
                 bs.screenMessage("Curse")
                 m.node.getDelegate().curse() 
+            elif m.flag is self.sf:
+            	bs.screenMessage("Shield")
+            	m.node.handleMessage(bs.PowerupMessage('shield'))
             elif m.flag is self.bgf2:
             	bs.screenMessage("Boxing Gloves")
                 m.node.boxingGloves= True
@@ -151,7 +158,7 @@ class FlagBoxingGame(bs.TeamGameActivity):
             elif m.flag is self.bgf3:
             	bs.screenMessage("Boxing Gloves")
                 m.node.boxingGloves= True        
-
+            
     def _updateScoreBoard(self):
         for team in self.teams:
             self._scoreBoard.setTeamValue(team,team.gameData['score'],self._scoreToWin)
