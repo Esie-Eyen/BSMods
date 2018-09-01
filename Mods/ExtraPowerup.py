@@ -141,7 +141,7 @@ class NewPowerup(Powerup):
             
     def _startFlashing(self):
         if self.node.exists(): self.node.flashing = True
- 
+    
     def handleMessage(self, msg):
         self._handleMessageSanityCheck()
 
@@ -158,34 +158,44 @@ class NewPowerup(Powerup):
             	radius = random.choice([0.5,1.0,1.5,2.0])
             	type = random.choice(['ice','normal','sticky','tnt'])           
             	pos = self.node.position
-            	bs.Blast(position=(pos[0],pos[1],pos[2]),blastRadius=radius,blastType=type).autoRetain()
-                self._blast = True
+            	bs.Blast(position=pos,blastRadius=radius,blastType=type).autoRetain()
+                self._blast = True                
                 if self._blast == True:
-                    if type == 'ice': bs.screenMessage("Type: Ice")
-                    if type == 'normal': bs.screenMessage("Type: Normal")
-                    if type == 'sticky': bs.screenMessage("Type: Sticky")
-                    if type == 'tnt': bs.screenMessage("Type: Tnt")
-                    if radius == 0.5: bs.screenMessage("Radius: 0.5")
-                    if radius == 1.0: bs.screenMessage("Radius: 1.0")
-                    if radius == 1.5: bs.screenMessage("Radius: 1.5")
-                    if radius == 2.0: bs.screenMessage("Radius: 2.0")
+                    if type == 'ice': bs.screenMessage("Type: Ice",color=(3.5,0,0))
+                    if type == 'normal': bs.screenMessage("Type: Normal",color=(3.5,0,0))
+                    if type == 'sticky': bs.screenMessage("Type: Sticky",color=(3.5,0,0))
+                    if type == 'tnt': bs.screenMessage("Type: Tnt",color=(3.5,0,0))
+                    if radius == 0.5: bs.screenMessage("Radius: 0.5",color=(0,0,3.5))
+                    if radius == 1.0: bs.screenMessage("Radius: 1.0",color=(0,0,3.5))
+                    if radius == 1.5: bs.screenMessage("Radius: 1.5",color=(0,0,3.5))
+                    if radius == 2.0: bs.screenMessage("Radius: 2.0",color=(0,0,3.5))
 
             if self.powerupType == 'mix':
             	pow = random.choice(['tripleBombs','iceBombs','punch','impactBombs','landMines','stickyBombs','shield','health','curse'])
                 pos = self.node.position
-                bs.Powerup(position=(pos[0],pos[1],pos[2]),powerupType=pow).autoRetain()
-                self._mix = True
+                bs.Powerup(position=pos,powerupType=pow).autoRetain()
+                bs.emitBGDynamics(position=self.node.position,velocity=self.node.velocity,count=int(14.0+random.random()*70),scale=1.4,spread=3.5,chunkType='spark');
+                self._mix = True                
                 if self._mix == True:
-                    if pow == 'tripleBombs': bs.screenMessage("Triple Bombs")
-                    if pow == 'iceBombs': bs.screenMessage("Ice Bombs")
-                    if pow == 'punch': bs.screenMessage("Boxing Gloves")
-                    if pow == 'impactBombs': bs.screenMessage("Impact Bombs")
-                    if pow == 'landMines': bs.screenMessage("Land Mines")
-                    if pow == 'stickyBombs': bs.screenMessage("Sticky Bombs")
-                    if pow == 'shield': bs.screenMessage("Energy Shield")
-                    if pow == 'health': bs.screenMessage("Health Kit")
-                    if pow == 'curse': bs.screenMessage("Curse")
-                    
+                    if pow == 'tripleBombs': bs.screenMessage("Triple Bombs",color=(1,1,0))
+                    if pow == 'iceBombs': bs.screenMessage("Ice Bombs",color=(0,0.2,1))
+                    if pow == 'punch': bs.screenMessage("Boxing Gloves",color=(1,0.3,0.3))
+                    if pow == 'impactBombs': bs.screenMessage("Impact Bombs",color=(0.3,0.3,0.3))
+                    if pow == 'landMines': bs.screenMessage("Land Mines",color=(0.1,0.7,0))
+                    if pow == 'stickyBombs': bs.screenMessage("Sticky Bombs",color=(0,1,0))
+                    if pow == 'shield': bs.screenMessage("Energy Shield",color=(0.7,0.5,1))
+                    if pow == 'health': bs.screenMessage("Health Kit",color=(1,1,1))
+                    if pow == 'curse': bs.screenMessage("Curse",color=(0.1,0.1,0.1)) 
+                    self._light = True           
+                if self._light == True:
+                    color = random.choice([(5.0,0.2,0.2),(0.2,5.0,0.2),(0.2,0.2,5.0)])
+                    self.light = bs.newNode('light',
+                    attrs={'position':self.node.position,
+                               'color':color,
+                               'volumeIntensityScale': 0.35})
+                    bs.animate(self.light,'intensity',{0:0,70:0.5,350:0},loop=False)
+                    bs.gameTimer(500,self.light.delete)  
+	                   
         elif isinstance(msg, _TouchedMessage):
             if not self._powersGiven:
                 node = bs.getCollisionInfo("opposingNode")
@@ -209,6 +219,6 @@ class NewPowerup(Powerup):
                 self.handleMessage(bs.DieMessage())
         else:
             bs.Actor.handleMessage(self, msg)
-            
+          
 bsPowerup.PowerupFactory = NewPowerupFactory
 bsPowerup.Powerup = NewPowerup
